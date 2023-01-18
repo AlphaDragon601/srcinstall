@@ -11,11 +11,15 @@ read -p "name of program: " prgm_name
 
 
 confLoc="/home/carson/programs.conf"
-
+TarStoreLoc="/home/carson/storedTars"
 
 searchResult=$( grep -c "\[${prgm_name}\]" $confLoc)
 echo "searching $confLoc ..."
 echo "found $prgm_name $searchResult times"
+
+
+
+
 
 if [ $searchResult -eq 1 ];then
 
@@ -29,10 +33,20 @@ if [ $searchResult -eq 1 ];then
     #echo $ver_line
     #echo $make_line
 
+    ver_num=$(sed -n ${ver_line}p $confLoc)
+    builder=$(sed -n ${make_line}p $confLoc)
+
+    echo "found version: $ver_num"
+    echo "found build tool: $builder"
+
+
 
 elif [ $searchResult -gt 1 ]; then
+
     echo "$prgm_name is listed multiple times, check config and try again"
+    
 else
+
     read -p "$prgm_name is not installed, would you like to install it? (y/n) " installYN
 
     read -p "version number: " ver_num
@@ -41,25 +55,36 @@ else
     #echo $builder  
 
 
-    echo $installYN
-fi
+    #echo $installYN
+
+    ########installer:###########
+        if [ "$installYN" = "y" ];then
+        echo "installing..."
+
+        cd ~/wrk/*
+        
+        if [ "$builder" = "make" ];then
+            #make -n
+            ./configure && make && make install
+        fi
+
+        cp $FILE $TarStoreLoc #store that tarball for uninstalling later
+
+        echo "[$prgm_name]" >> $confLoc
+        echo $ver_num >> $confLoc #version number then build tool
+        echo $builder >> $confLoc
 
 
-if [ "$installYN" = "y" ];then
-    echo "installing..."
-
-    cd ~/wrk/*
-    
-    if [ "$builder" = "make" ];then
-        #make -n
-        ./configure && make && make install
     fi
-
-    echo "[$prgm_name]" >> $confLoc
-    echo $ver_num >> $confLoc #version number then build tool
-    echo $builder >> $confLoc
-
+    #############################
 fi
+
+
+
+
+
+
+
 
 
 
