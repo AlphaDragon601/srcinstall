@@ -29,4 +29,4 @@ There should be no whitespace between the entries.
 - [ ] better error handling
 
 
-# Note: you need to edit the confLoc and TarStoreLoc variables at the top of the script for it to work
+### Note: you need to edit the confLoc and TarStoreLoc variables at the top of the script for it to work
