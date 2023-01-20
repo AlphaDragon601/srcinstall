@@ -5,6 +5,24 @@
 
 ## Usage:
 ```
-./installer.sh in <tarball>
-./installer.sh del <program name>
+sudo ./installer.sh in <tarball>
+sudo ./installer.sh del <program name>
 ```
+
+## Config File:
+This program works using a .conf file at the address given in variable `confLoc` at the top of the file. This file stores user logged data on the installed tarball in the format:
+```
+[nameofprogram]
+versionNumber
+makeFileBuilder (i.e gnu make)
+tarballName
+```
+There should be no whitespace between the entries. 
+
+## Goals:
+
+- [ ] Tidy up code into more neat functions
+- [ ] List installed programs option
+- [ ] aliases
+- [ ] man page(?)
+- [ ] possibly another script to automate adding builder options
