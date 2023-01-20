@@ -200,6 +200,7 @@ if [ "$1" = "in" ];then
     installFxn
 elif [ "$1" = "del" ];then
     uninstallFxn $2
-
+else
+    echo "command: $1 not found"
 
 fi
