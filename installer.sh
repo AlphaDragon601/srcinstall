@@ -23,14 +23,15 @@ installFxn() {
     echo "found $prgm_name $searchResult times"
 
 
-    if [ $searchResult -eq 1 ];then
+    if [ $searchResult -eq 1 ];then #update if found in config
 
-        line_nums=$(grep -n "\[$prgm_name\]" $confLoc | cut -d : -f 1)
+        line_num=$(grep -n "\[$prgm_name\]" $confLoc | cut -d : -f 1)
 
-        echo "found on line $line_nums"
+        echo "found on line $line_num"
+        read -p "Version Number of new Tarball: " NewVer_num
 
-        ver_line=$(($line_nums+1))
-        make_line=$(($line_nums+2))
+        ver_line=$(($line_num+1))
+        make_line=$(($line_num+2))
 
         #echo $ver_line
         #echo $make_line
@@ -41,13 +42,35 @@ installFxn() {
         echo "found version: $ver_num"
         echo "found build tool: $builder"
 
+        if [ "$NewVer_Num" != "$ver_num" ];then
+            read -p "Version given was $NewVer_num , conf file shows $ver_num , would you like to install $NewVer_num instead? (y/n): " response
+
+            if [ "$response" = "y" ];then
+                echo "installing..."
+
+                cd ~/wrk/*
+
+                if [ "$builder" = "make" ];then
+                #make -n
+                ./configure && make && make install
+                fi
+
+                echo "uninstalling old..."
+
+                uninstallFxn $prgm_name
+                echo "complete"
+
+            fi
 
 
-    elif [ $searchResult -gt 1 ]; then
+        fi
+
+
+    elif [ $searchResult -gt 1 ]; then #throw error if listed >1
 
         echo "$prgm_name is listed multiple times, check config and try again"
 
-    else
+    else # if not in config, install it
 
         read -p "$prgm_name is not installed, would you like to install it? (y/n) " installYN
 
@@ -89,20 +112,36 @@ installFxn() {
 
 }
 
+#WIP#####
+# installer() {
 
-uninstallFxn() {
 
-    line_nums=$(grep -n "\[$prgm_name\]" $confLoc | cut -d : -f 1)
 
-    echo "found on line $line_nums"
 
-    make_line=$(($line_nums+2))
+
+
+
+
+# }
+########
+
+
+
+
+
+uninstallFxn() { # takes parameter 1 as program name to look for and uninstall
+
+    line_num=$(grep -n "\[$1\]" $confLoc | cut -d : -f 1)
+
+    echo "found on line $line_num"
+
+    make_line=$(($line_num+2))
 
     builder=$(sed -n ${make_line}p $confLoc)
 
     echo "found build tool: $builder"
 
-    path_line=$(($line_nums+3))
+    path_line=$(($line_num+3))
 
     TarName=$(sed -n ${path_line}p $confLoc)
     
@@ -120,6 +159,19 @@ uninstallFxn() {
     ./configure && make uninstall
     fi
 
+    echo "removing from config..."
+
+    ver_line=$(($line_num+1))
+    
+    sed -i ${path_line}d $confLoc
+    sed -i ${make_line}d $confLoc
+    sed -i ${ver_line}d $confLoc
+    sed -i ${line_num}d $confLoc
+    
+    
+
+    echo "removed"
+
 }
 
 
@@ -128,8 +180,7 @@ if [ "$1" = "in" ];then
     FILE=$2
     installFxn
 elif [ "$1" = "del" ];then
-    prgm_name=$2
-    uninstallFxn
+    uninstallFxn $2
 
 
 fi
