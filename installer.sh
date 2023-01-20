@@ -2,8 +2,8 @@
 
 
 # change with user
-confLoc="/home/carson/programs.conf"
-TarStoreLoc="/home/carson/storedTars"
+confLoc="/home/<user>/programs.conf" # the location of the config file storing info
+TarStoreLoc="/home/<user>/storedTars" # where installed files store tarballs
 
 
 installFxn() {
