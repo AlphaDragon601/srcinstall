@@ -14,7 +14,7 @@ This program works using a .conf file at the address given in variable `confLoc`
 ```
 [nameofprogram]
 versionNumber
-makeFileBuilder (i.e gnu make)
+makeFileBuilder (i.e make)
 tarballName
 ```
 There should be no whitespace between the entries. 
@@ -27,6 +27,8 @@ There should be no whitespace between the entries.
 - [ ] man page(?)
 - [ ] possibly another script to automate adding builder options
 - [ ] better error handling
+- [ ] automate conf file and tar storage directory creation
+
 
 
 ### Note: you need to edit the confLoc and TarStoreLoc variables at the top of the script for it to work
