@@ -17,7 +17,7 @@ versionNumber
 makeFileBuilder (i.e make)
 tarballName
 ```
-There should be no whitespace between the entries. 
+
 
 ## Goals:
 
@@ -28,7 +28,7 @@ There should be no whitespace between the entries.
 - [ ] possibly another script to automate adding builder options
 - [ ] better error handling
 - [ ] automate conf file and tar storage directory creation
-
+- [ ] install tarballs in bulk
 
 
 ### Note: you need to edit the confLoc and TarStoreLoc variables at the top of the script for it to work
