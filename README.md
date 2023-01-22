@@ -22,7 +22,7 @@ tarballName
 ## Goals:
 
 - [ ] Tidy up code into more neat functions
-- [ ] List installed programs option
+- [x] List installed programs option
 - [ ] aliases
 - [ ] man page(?)
 - [ ] possibly another script to automate adding builder options
