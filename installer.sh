@@ -132,7 +132,9 @@ installFxn() {
 ########
 
 
-
+listFxn() {
+    grep -n "\[" $confLoc
+}
 
 
 uninstallFxn() { # takes parameter 1 as program name to look for and uninstall
@@ -200,6 +202,10 @@ if [ "$1" = "in" ];then
     installFxn
 elif [ "$1" = "del" ];then
     uninstallFxn $2
+elif [ "$1" = "lis" ];then
+    listFxn
+elif [ x"$1" = "x" ];then
+    echo -e "no command entered, options are \n\tin \n\tdel \n\tlis"
 else
     echo "command: $1 not found"
 
