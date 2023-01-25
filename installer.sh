@@ -2,15 +2,25 @@
 
 
 # change with user
-confLoc="/home/<user>/programs.conf" # the location of the config file storing info
-TarStoreLoc="/home/<user>/storedTars" # where installed files store tarballs
+confLoc="/home/carson/programs.conf" # the location of the config file storing info
+TarStoreLoc="/home/carson/storedTars" # where installed files store tarballs
+
+
+
+trap cleanup 1 2 3 6
+cleanup()
+{
+  echo -e "\nRemoving temporary files..."
+  rm -rf "$WrkDir"
+  exit
+}
+
 
 
 installFxn() {
+    WrkDir=$(mktemp -d)
 
-    mkdir ~/wrk/
-
-    tar -xf $FILE -C ~/wrk/
+    tar -xf $1 -C $WrkDir/
 
     echo "Please enter the following info: "
     read -p "name of program: " prgm_name
@@ -51,10 +61,10 @@ installFxn() {
             if [ "$response" = "y" ];then
                 echo "installing..."
 
-                cd ~/wrk/*
+                cd $WrkDir/*
 
                 if [ "$builder" = "make" ];then
-                #make -n
+               
                 ./configure && make && make install
                 fi
 
@@ -89,14 +99,14 @@ installFxn() {
             if [ "$installYN" = "y" ];then
             echo "installing..."
 
-            cd ~/wrk/*
+            cd $WrkDir/*
             
             if [ "$builder" = "make" ];then
-                #make -n
+            
                 ./configure && make && make install
             fi
 
-            realFile=$(readlink -f "$CmdDir/$FILE")
+            realFile=$(readlink -f "$CmdDir/$1")
 
 
             cp $realFile $TarStoreLoc #store that tarball for uninstalling later
@@ -104,7 +114,7 @@ installFxn() {
             echo "[$prgm_name]" >> $confLoc
             echo $ver_num >> $confLoc #version number then build tool
             echo $builder >> $confLoc
-            echo $FILE >> $confLoc
+            echo $1 >> $confLoc
 
         fi
         #############################
@@ -114,22 +124,10 @@ installFxn() {
 
 
 
-    rm -r ~/wrk/
+    rm -r $WrkDir/
 
 }
 
-#WIP#####
-# installer() {
-
-
-
-
-
-
-
-
-# }
-########
 
 
 listFxn() {
@@ -141,55 +139,55 @@ uninstallFxn() { # takes parameter 1 as program name to look for and uninstall
 
     line_num=$(grep -n "\[$1\]" $confLoc | cut -d : -f 1)
 
-if [ -n "$line_num" ];then
+    if [ -n "$line_num" ];then
 
-    echo "found on line $line_num"
+        echo "found on line $line_num"
 
-    make_line=$(($line_num+2))
+        make_line=$(($line_num+2))
 
-    builder=$(sed -n ${make_line}p $confLoc)
+        builder=$(sed -n ${make_line}p $confLoc)
 
-    echo "found build tool: $builder"
+        echo "found build tool: $builder"
 
-    path_line=$(($line_num+3))
+        path_line=$(($line_num+3))
 
-    TarName=$(sed -n ${path_line}p $confLoc)
-    
-    echo "found tarball name: $TarName"
+        TarName=$(sed -n ${path_line}p $confLoc)
+        
+        echo "found tarball name: $TarName"
 
-    cd $TarStoreLoc
-    tar -xzf $TarName
+        cd $TarStoreLoc
+        tar -xzf $TarName
 
-    
-    TarDir=$(echo ${TarName%???????})
-    echo "extracted dir name: $TarDir"
-    echo "$TarDir"
-    cd $TarDir
-    echo "entered"
-    if [ "$builder" = "make" ];then
-    ./configure && make uninstall
-    cd ..
-    rm -r $TarDir
-    rm $TarName
-    fi
+        
+        TarDir=$(echo ${TarName%???????})
+        echo "extracted dir name: $TarDir"
+        echo "$TarDir"
+        cd $TarDir
+        echo "entered"
+        if [ "$builder" = "make" ];then
+        ./configure && make uninstall
+        cd ..
+        rm -r $TarDir
+        rm $TarName
+        fi
 
-    echo "removing from config..."
+        echo "removing from config..."
 
-    ver_line=$(($line_num+1))
+        ver_line=$(($line_num+1))
 
-    sed -i ${path_line}d $confLoc
-    sed -i ${make_line}d $confLoc
-    sed -i ${ver_line}d $confLoc
-    sed -i ${line_num}d $confLoc
-    
-    
+        sed -i ${path_line}d $confLoc
+        sed -i ${make_line}d $confLoc
+        sed -i ${ver_line}d $confLoc
+        sed -i ${line_num}d $confLoc
+        
+        
 
-    echo "removed"
+        echo "removed"
 
-    else
-        echo "program not found, check config at $confLoc"
+        else
+            echo "program not found, check config at $confLoc"
 
-    fi
+        fi
     
 
 }
@@ -198,10 +196,24 @@ if [ -n "$line_num" ];then
 
 if [ "$1" = "in" ];then
     CmdDir=$(pwd)
-    FILE=$2
-    installFxn
+    # inCmdCount=$(expr $# )
+    # echo "$inCmdCount"
+    shift
+    for var in "$@"
+    do
+        cd $CmdDir
+        echo -e "\n$var"
+        installFxn $var
+    done
+
 elif [ "$1" = "del" ];then
-    uninstallFxn $2
+    shift
+    for var in "$@"
+    do
+        echo -e "\n$var"
+        uninstallFxn $var
+    done
+
 elif [ "$1" = "lis" ];then
     listFxn
 elif [ x"$1" = "x" ];then
@@ -210,3 +222,4 @@ else
     echo "command: $1 not found"
 
 fi
+
