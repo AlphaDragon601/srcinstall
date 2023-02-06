@@ -29,6 +29,7 @@ tarballName
 - [x] better error handling
 - [ ] automate conf file and tar storage directory creation
 - [x] install tarballs in bulk
+- [ ] support configure flags
 
 
 ### Note: you need to edit the confLoc and TarStoreLoc variables at the top of the script for it to work
