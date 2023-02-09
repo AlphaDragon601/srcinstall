@@ -27,9 +27,9 @@ tarballName
 - [ ] man page(?)
 - [ ] possibly another script to automate adding builder options
 - [x] better error handling
-- [ ] automate conf file and tar storage directory creation
+- [x] automate conf file and tar storage directory creation
 - [x] install tarballs in bulk
 - [ ] support configure flags
 
 
-### Note: you need to edit the confLoc and TarStoreLoc variables at the top of the script for it to work
+### Note: config files and direvtory creation has been automated :)
