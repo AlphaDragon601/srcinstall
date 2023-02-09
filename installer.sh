@@ -1,9 +1,29 @@
 #!/bin/bash
 
 
-# change with user
-confLoc="/home/carson/programs.conf" # the location of the config file storing info
-TarStoreLoc="/home/carson/storedTars" # where installed files store tarballs
+user=$(logname)
+
+if [ ! -d "/home/$user/.config/srcinstaller/" ];then
+    mkdir /home/$user/.config/srcinstaller
+fi
+
+
+confLoc="/home/$user/.config/srcinstaller/programs.conf" # the location of the config file storing info
+TarStoreLoc="/home/$user/.config/srcinstaller/storedTars/" # where installed files store tarballs
+
+if [ ! -f "$confLoc" ];then
+    read -p "error: config file not found, would you like to create one at .config/srcinstaller/programs.conf? " answer1
+    if [ "$answer1" == "y" ];then
+        touch /home/$user/.config/srcinstaller/programs.conf
+    fi
+fi
+
+if [ ! -d "$TarStoreLoc" ];then
+    read -p "error: no tar storage dir, would you like to create one at .config/srcinstaller/storedTars/? " answer2
+    if [ "$answer2" == "y" ];then
+        mkdir /home/$user/.config/srcinstaller/storedTars
+    fi
+fi
 
 
 
@@ -102,7 +122,7 @@ installFxn() {
             cd $WrkDir/*
             
             if [ "$builder" = "make" ];then
-            
+
                 ./configure && make && make install
             fi
 
