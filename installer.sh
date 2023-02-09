@@ -2,8 +2,8 @@
 
 
 # change with user
-confLoc="/home/${USER}/programs.conf" # the location of the config file storing info
-TarStoreLoc="/home/${USER}/storedTars" # where installed files store tarballs
+confLoc="/home/carson/programs.conf" # the location of the config file storing info
+TarStoreLoc="/home/carson/storedTars" # where installed files store tarballs
 
 
 
