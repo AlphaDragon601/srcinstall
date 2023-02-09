@@ -12,15 +12,17 @@ confLoc="/home/$user/.config/srcinstaller/programs.conf" # the location of the c
 TarStoreLoc="/home/$user/.config/srcinstaller/storedTars/" # where installed files store tarballs
 
 if [ ! -f "$confLoc" ];then
-    read -p "error: config file not found, would you like to create one at .config/srcinstaller/programs.conf? " answer1
+    read -p "error: config file not found, would you like to create one at .config/srcinstaller/programs.conf? (y/n) " answer1
     if [ "$answer1" == "y" ];then
+        isNoInput $answer1
         touch /home/$user/.config/srcinstaller/programs.conf
     fi
 fi
 
 if [ ! -d "$TarStoreLoc" ];then
-    read -p "error: no tar storage dir, would you like to create one at .config/srcinstaller/storedTars/? " answer2
+    read -p "error: no tar storage dir, would you like to create one at .config/srcinstaller/storedTars/? (y/n)" answer2
     if [ "$answer2" == "y" ];then
+        isNoInput $answer2 
         mkdir /home/$user/.config/srcinstaller/storedTars
     fi
 fi
@@ -44,7 +46,7 @@ installFxn() {
 
     echo "Please enter the following info: "
     read -p "name of program: " prgm_name
-
+    isNoInput $prgm_name
 
     
 
@@ -59,6 +61,7 @@ installFxn() {
 
         echo "found on line $line_num"
         read -p "Version Number of new Tarball: " NewVer_num
+        isNoInput $NewVer_num
 
         ver_line=$(($line_num+1))
         make_line=$(($line_num+2))
@@ -77,7 +80,7 @@ installFxn() {
 
         if [[ "$NewVer_num" != "$ver_num" ]];then
             read -p "Version given was $NewVer_num , conf file shows $ver_num , would you like to install $NewVer_num instead? (y/n): " response
-
+            isNoInput $response
             if [ "$response" = "y" ];then
                 echo "installing..."
 
@@ -110,12 +113,12 @@ installFxn() {
         read -p "version number: " ver_num
         read -p "build system (default gnu make): " builder
         builder=${builder:-make}
-        #echo $builder  
 
-
-        #echo $installYN
-
+        isNoInput $installYN
+        isNoInput $ver_num
+        isNoInput $builder
         ########installer:###########
+        
             if [ "$installYN" = "y" ];then
             echo "installing..."
 
@@ -146,6 +149,13 @@ installFxn() {
 
     rm -r $WrkDir/
 
+}
+
+isNoInput(){
+    if [ "$1" == "" ];then
+        echo "please answer in accordance with the prompt...exiting"
+        exit
+    fi
 }
 
 
@@ -188,7 +198,12 @@ uninstallFxn() { # takes parameter 1 as program name to look for and uninstall
         ./configure && make uninstall
         cd ..
         rm -r $TarDir
-        rm $TarName
+        echo -e "\n\n\n\n"
+        read -p "would you like to remove the stored tarball? (y/n)" answer
+        isNoInput $answer
+            if [ "$answer" == "y" ];then
+                rm $TarName
+            fi
         fi
 
         echo "removing from config..."
