@@ -5,8 +5,9 @@
 
 ## Usage:
 ```
-sudo ./installer.sh in <tarball>
-sudo ./installer.sh del <program name>
+sudo srcinstall in <tarball>
+sudo srcinstall del <program name>
+sudo srcinstall set /path/to/script/installer.sh
 ```
 
 ## Config File:
@@ -23,7 +24,7 @@ tarballName
 
 - [ ] Tidy up code into more neat functions
 - [x] List installed programs option
-- [ ] aliases
+- [x] aliases
 - [ ] man page(?)
 - [ ] possibly another script to automate adding builder options
 - [x] better error handling
@@ -32,4 +33,5 @@ tarballName
 - [ ] support configure flags
 
 
-### Note: config files and direvtory creation has been automated :)
+### Note: config files and directory creation has been automated :)
+### Note2: make sure to run "set" command on first run
