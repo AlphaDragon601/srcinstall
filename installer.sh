@@ -1,29 +1,65 @@
 #!/bin/bash
-
 user=$(logname)
+confLoc="/home/$user/.config/srcinstaller/programs.conf"  # the location of the config file storing info
+TarStoreLoc="/home/$user/.config/srcinstaller/storedTars" # where installed files store tarballs
 
-if [ ! -d "/home/$user/.config/srcinstaller/" ]; then
-    mkdir /home/$user/.config/srcinstaller
-fi
-
-confLoc="/home/$user/.config/srcinstaller/programs.conf"   # the location of the config file storing info
-TarStoreLoc="/home/$user/.config/srcinstaller/storedTars/" # where installed files store tarballs
-
-if [ ! -f "$confLoc" ]; then
-    read -p "error: config file not found, would you like to create one at .config/srcinstaller/programs.conf? (y/n) " answer1
-    if [ "$answer1" == "y" ]; then
-        isNoInput $answer1
-        touch /home/$user/.config/srcinstaller/programs.conf
+isNoInput() {
+    if [ "$1" == "" ]; then
+        echo "please answer in accordance with the prompt...exiting"
+        exit
     fi
-fi
+}
 
-if [ ! -d "$TarStoreLoc" ]; then
-    read -p "error: no tar storage dir, would you like to create one at .config/srcinstaller/storedTars/? (y/n)" answer2
-    if [ "$answer2" == "y" ]; then
-        isNoInput $answer2
-        mkdir /home/$user/.config/srcinstaller/storedTars
+setupFxn() {
+
+    if [ "$1" == "" ]; then
+        echo "enter the path of the script after the 'set' option"
+        exit
     fi
-fi
+
+    if [ ! -f "$1" ]; then
+        echo "$1 is not a valid file"
+        exit
+    fi
+
+    # check for conf and tarstore directories
+
+    if [ ! -d "/home/$user/.config/srcinstaller/" ]; then
+        mkdir /home/$user/.config/srcinstaller
+    fi
+
+    if [ ! -f "$confLoc" ]; then
+        read -p "error: config file not found, would you like to create one at .config/srcinstaller/programs.conf? (y/n) " answer1
+        if [ "$answer1" == "y" ]; then
+            isNoInput $answer1
+            touch /home/$user/.config/srcinstaller/programs.conf
+        fi
+    fi
+
+    if [ ! -d "$TarStoreLoc" ]; then
+        read -p "error: no tar storage dir, would you like to create one at .config/srcinstaller/storedTars/? (y/n)" answer2
+        if [ "$answer2" == "y" ]; then
+            isNoInput $answer2
+            mkdir /home/$user/.config/srcinstaller/storedTars
+        fi
+    fi
+
+    aliasCheck=$(grep -c "installer.sh" /home/$user/.bashrc)
+    if [ $aliasCheck -eq 0 ]; then
+        read -p "you don't have an alias for this installer, would you like to add one? (y/n) " answer3
+        isNoInput $answer3
+        if [ "$answer3" = "y" ]; then
+
+            if [ $(grep -c "alias sudo='sudo '" /home/$user/.bashrc) -eq 0 ]; then
+                echo "alias sudo='sudo '" >>/home/$user/.bashrc
+            fi
+            InputPath=$(readlink -f "$1")
+            echo "alias srcinstall=\"$InputPath\"" >>/home/$user/.bashrc
+
+        fi
+    fi
+
+}
 
 trap cleanup 1 2 3 6
 cleanup() {
@@ -35,14 +71,23 @@ cleanup() {
 installFxn() {
     WrkDir=$(mktemp -d)
 
+    InputFile=$1
+
+    InputfileName=$(basename ${1})
+    InputfilePath=$(readlink -f $InputFile)
+    StoredTarFile="$TarStoreLoc/$InputfileName"
+
+
     tar -xf $1 -C $WrkDir/
+
+
 
     echo "Please enter the following info: "
     read -p "name of program: " prgm_name
     isNoInput $prgm_name
 
-    searchResult=$(grep -c "\[${prgm_name}\]" $confLoc)
     echo "searching $confLoc ..."
+    searchResult=$(grep -c "\[${prgm_name}\]" $confLoc)
     echo "found $prgm_name $searchResult times"
 
     if [ $searchResult -eq 1 ]; then #update if found in config
@@ -89,10 +134,7 @@ installFxn() {
 
         fi
 
-    elif
-
-        [ $searchResult -gt 1 ]
-    then #throw error if listed >1
+    elif  [ $searchResult -gt 1 ]; then #throw error if listed >1
 
         echo "$prgm_name is listed multiple times, check config and try again"
 
@@ -118,29 +160,35 @@ installFxn() {
 
                 ./configure && make && make install
             fi
+            
+            # echo $InputfilePath
+            # echo $StoredTarFile
 
-            realFile=$(readlink -f "$CmdDir/$1")
+            if [ ! -f "$StoredTarFile" ];then
 
-            cp $realFile $TarStoreLoc #store that tarball for uninstalling later
+                cp $InputfilePath $StoredTarFile #store that tarball for uninstalling later
+
+            else
+                echo "Tar already stored"
+
+            fi
 
             echo "[$prgm_name]" >>$confLoc
             echo $ver_num >>$confLoc #version number then build tool
             echo $builder >>$confLoc
-            echo $1 >>$confLoc
+            echo $InputfileName >>$confLoc
+
+        else
+
+            exit
 
         fi
+
         #############################
     fi
 
     rm -r $WrkDir/
 
-}
-
-isNoInput() {
-    if [ "$1" == "" ]; then
-        echo "please answer in accordance with the prompt...exiting"
-        exit
-    fi
 }
 
 listFxn() {
@@ -164,39 +212,49 @@ uninstallFxn() { # takes parameter 1 as program name to look for and uninstall
         path_line=$(($line_num + 3))
 
         TarName=$(sed -n ${path_line}p $confLoc)
-
+        TarName=$(basename ${TarName})
         echo "found tarball name: $TarName"
 
-        cd $TarStoreLoc
-        tar -xzf $TarName
+        read -p "are you sure you want to uninstall $1? (y/n): " confirmation
 
-        TarDir=$(echo ${TarName%???????})
-        echo "extracted dir name: $TarDir"
-        echo "$TarDir"
-        cd $TarDir
-        echo "entered"
-        if [ "$builder" = "make" ]; then
-            ./configure && make uninstall
-            cd ..
-            rm -r $TarDir
-            echo -e "\n\n\n\n"
-            read -p "would you like to remove the stored tarball? (y/n)" answer
-            isNoInput $answer
-            if [ "$answer" == "y" ]; then
-                rm $TarName
+        if [ "$confirmation" = "y" ];then
+
+            cd $TarStoreLoc
+            tar -xzf $TarName
+
+            TarDir=$(echo ${TarName%???????})
+            echo "extracted dir name: $TarDir"
+            echo "$TarDir"
+            cd $TarDir
+            echo "entered"
+            if [ "$builder" = "make" ]; then
+                ./configure && make uninstall
+                cd ..
+                rm -r $TarDir
+                echo -e "\n\n\n\n"
+                read -p "would you like to remove the stored tarball? (y/n)" answer
+                isNoInput $answer
+                if [ "$answer" == "y" ]; then
+                    rm $TarName
+                fi
             fi
+
+            echo "removing from config..."
+
+            ver_line=$(($line_num + 1))
+
+            sed -i ${path_line}d $confLoc
+            sed -i ${make_line}d $confLoc
+            sed -i ${ver_line}d $confLoc
+            sed -i ${line_num}d $confLoc
+
+            echo "removed"
+        
+        else
+            echo "cancelling..."
+            exit
+
         fi
-
-        echo "removing from config..."
-
-        ver_line=$(($line_num + 1))
-
-        sed -i ${path_line}d $confLoc
-        sed -i ${make_line}d $confLoc
-        sed -i ${ver_line}d $confLoc
-        sed -i ${line_num}d $confLoc
-
-        echo "removed"
 
     else
         echo "program not found, check config at $confLoc"
@@ -225,6 +283,9 @@ elif [ "$1" = "del" ]; then
 
 elif [ "$1" = "lis" ]; then
     listFxn
+elif [ "$1" = "set" ]; then
+    shift
+    setupFxn $1
 elif [ x"$1" = "x" ]; then
     echo -e "no command entered, options are \n\tin \n\tdel \n\tlis"
 else
