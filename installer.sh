@@ -116,7 +116,13 @@ installFxn() {
             read -p "Version given was $NewVer_num , conf file shows $ver_num , would you like to install $NewVer_num instead? (y/n): " response
             isNoInput $response
             if [ "$response" = "y" ]; then
-                echo "installing..."
+
+                echo "uninstalling old..." 
+
+                uninstallFxn $prgm_name "update"
+                sed -i "$ver_line s/$ver_num/$NewVer_num/" $confLoc
+                
+                echo "installing new..."
 
                 cd $WrkDir/*
 
@@ -125,9 +131,7 @@ installFxn() {
                     ./configure && make && make install
                 fi
 
-                echo "uninstalling old..."
-
-                uninstallFxn $prgm_name
+                
                 echo "complete"
 
             fi
@@ -237,19 +241,24 @@ uninstallFxn() { # takes parameter 1 as program name to look for and uninstall
                 if [ "$answer" == "y" ]; then
                     rm $TarName
                 fi
-            fi
-
-            echo "removing from config..."
-
+            fi                
+            
             ver_line=$(($line_num + 1))
 
-            sed -i ${path_line}d $confLoc
-            sed -i ${make_line}d $confLoc
-            sed -i ${ver_line}d $confLoc
-            sed -i ${line_num}d $confLoc
+             if [ "$2" != "update" ];then
+                    echo "removing from config..."
 
-            echo "removed"
-        
+                    
+
+                    sed -i ${path_line}d $confLoc
+                    sed -i ${make_line}d $confLoc
+                    sed -i ${ver_line}d $confLoc
+                    sed -i ${line_num}d $confLoc
+
+                    echo "removed"
+
+
+            fi
         else
             echo "cancelling..."
             exit
