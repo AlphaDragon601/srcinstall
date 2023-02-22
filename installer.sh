@@ -1,5 +1,19 @@
 #!/bin/bash
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
+
 user=$(logname)
+
+if [ "$user" == "root" ];then
+
+    read -p "you are root, what user what you like to install under?: " user
+
+fi
+
+
 confLoc="/home/$user/.config/srcinstaller/programs.conf"  # the location of the config file storing info
 TarStoreLoc="/home/$user/.config/srcinstaller/storedTars" # where installed files store tarballs
 
@@ -126,10 +140,7 @@ installFxn() {
 
                 cd $WrkDir/*
 
-                if [ "$builder" = "make" ]; then
-
-                    ./configure && make && make install
-                fi
+                builderPicker $builder
 
                 
                 echo "complete"
@@ -160,10 +171,7 @@ installFxn() {
 
             cd $WrkDir/*
 
-            if [ "$builder" = "make" ]; then
-
-                ./configure && make && make install
-            fi
+            builderPicker $builder
             
             # echo $InputfilePath
             # echo $StoredTarFile
@@ -194,6 +202,17 @@ installFxn() {
     rm -r $WrkDir/
 
 }
+
+builderPicker(){
+
+    if [ "$1" = "make" ]; then
+
+        ./configure && make && make install
+    fi
+
+}
+
+
 
 listFxn() {
     grep -n "\[" $confLoc
@@ -271,6 +290,9 @@ uninstallFxn() { # takes parameter 1 as program name to look for and uninstall
     fi
 
 }
+
+
+
 
 if [ "$1" = "in" ]; then
     CmdDir=$(pwd)
